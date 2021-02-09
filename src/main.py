@@ -71,10 +71,15 @@ class LocalTest(YaoGarbler):
         circuit, pbits, keys = entry["circuit"], entry["pbits"], entry["keys"]
         garbled_tables = entry["garbled_tables"]
         outputs = circuit["out"]
+
+        # Alice
         a_wires = circuit.get("alice", [])  # Alice's wires
         a_inputs = {}  # map from Alice's wires to (key, encr_bit) inputs
+
+        # Bob
         b_wires = circuit.get("bob", [])  # Bob's wires
         b_inputs = {}  # map from Bob's wires to (key, encr_bit) inputs
+
         pbits_out = {w: pbits[w] for w in outputs}  # p-bits of outputs
         N = len(a_wires) + len(b_wires)
 
@@ -125,11 +130,9 @@ class LocalTest(YaoGarbler):
 def main(
     party,
     circuit_path="add.json",
-    oblivious_transfer=True,
     print_mode="circuit",
-    loglevel=logging.CRITICAL,
 ):
-    logging.getLogger().setLevel(loglevel)
+    logging.getLogger().setLevel(logging.CRITICAL)
 
     if party == "local":
         local = LocalTest(circuit_path, print_mode=print_mode)
@@ -163,28 +166,17 @@ if __name__ == '__main__':
             default="circuits/default.json",
             help=("the JSON circuit file for alice and local tests"),
         )
-        # parser.add_argument("--no-oblivious-transfer",
-        #                     action="store_true",
-        #                     help="disable oblivious transfer")
         parser.add_argument(
             "-m",
             metavar="mode",
             choices=["circuit", "table"],
             default="circuit",
             help="the print mode for local tests (default 'circuit')")
-        # parser.add_argument("-l",
-        #                     "--loglevel",
-        #                     metavar="level",
-        #                     choices=loglevels.keys(),
-        #                     default="warning",
-        #                     help="the log level (default 'warning')")
 
         main(
             party=parser.parse_args().party,
             circuit_path=parser.parse_args().circuit,
-            # oblivious_transfer=not parser.parse_args().no_oblivious_transfer,
             print_mode=parser.parse_args().m,
-            # loglevel=loglevels[parser.parse_args().loglevel],
         )
 
     init()

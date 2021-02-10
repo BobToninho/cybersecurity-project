@@ -3,6 +3,7 @@ import logging
 # import ot
 import util
 import yao
+from binary_adder import *
 from abc import ABC, abstractmethod
 
 logging.basicConfig(format="[%(levelname)s] %(message)s",
@@ -75,20 +76,28 @@ class LocalTest(YaoGarbler):
         # Alice
         a_wires = circuit.get("alice", [])  # Alice's wires
         a_inputs = {}  # map from Alice's wires to (key, encr_bit) inputs
+        print(f'Alice\'s wires {a_wires}')
 
         # Bob
         b_wires = circuit.get("bob", [])  # Bob's wires
         b_inputs = {}  # map from Bob's wires to (key, encr_bit) inputs
+        print(f'Bob\'s wires {b_wires}\n')
 
         pbits_out = {w: pbits[w] for w in outputs}  # p-bits of outputs
-        N = len(a_wires) + len(b_wires)
+        total_wires = len(a_wires) + len(b_wires)
+        print(f'Total wires: {total_wires}')
+
+        possible_bits_combination = [
+            format(n, 'b').zfill(total_wires) for n in range(2 ** total_wires)]
 
         print(f"======== {circuit['id']} ========")
 
         # Generate all possible inputs for both Alice and Bob
-        for bits in [format(n, 'b').zfill(N) for n in range(2**N)]:
+        for bits in possible_bits_combination:
+            # print('\n')
             bits_a = [int(b) for b in bits[:len(a_wires)]]  # Alice's inputs
-            bits_b = [int(b) for b in bits[N - len(b_wires):]]  # Bob's inputs
+            bits_b = [int(b) for b in bits[total_wires -
+                                           len(b_wires):]]  # Bob's inputs
 
             # Map Alice's wires to (key, encr_bit)
             for i in range(len(a_wires)):
@@ -103,14 +112,25 @@ class LocalTest(YaoGarbler):
             result = yao.evaluate(circuit, garbled_tables, pbits_out, a_inputs,
                                   b_inputs)
 
-            # Format output
-            str_bits_a = ' '.join(bits[:len(a_wires)])
-            str_bits_b = ' '.join(bits[len(a_wires):])
-            str_result = ' '.join([str(result[w]) for w in outputs])
+            result_list = list(result.values())
 
-            print(f"  Alice{a_wires} = {str_bits_a} "
-                  f"Bob{b_wires} = {str_bits_b}  "
-                  f"Outputs{outputs} = {str_result}")
+            # print(f'Result: {result_list[0]}')
+            # print(f'Result carry: {result_list[1]}')
+            # print(bits)
+
+            # Format output
+            str_bits_a = ''.join(bits[:len(a_wires)])
+            str_bits_b = ''.join(bits[len(a_wires):])
+            str_result = ''.join([str(result[w]) for w in outputs])
+            # correct_result = bin(int(str_bits_a[::-1], 2) +
+            #  int(str_bits_b[::-1], 2))
+            cr_carry, cr_sum = full_adder(
+                int(str_bits_a[0], 2), int(str_bits_a[1:], 2), int(str_bits_b, 2))
+
+            print(f"Alice{a_wires} = {str_bits_a} "
+                  f"Bob{b_wires} = {str_bits_b}\t"
+                  f"Outputs{outputs} = {str_result}   "
+                  f"Correct result = {cr_sum, cr_carry}")
 
         print()
 

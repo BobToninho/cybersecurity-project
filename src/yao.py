@@ -87,6 +87,7 @@ class GarbledGate:
         keys: A dict mapping each wire to a pair of keys.
         pbits: A dict mapping each wire to its p-bit.
     """
+
     def __init__(self, gate, keys, pbits):
         self.keys = keys  # dict of yao circuit keys
         self.pbits = pbits  # dict of p-bits
@@ -196,6 +197,7 @@ class GarbledCircuit:
         circuit: A dict containing circuit spec.
         pbits: Optional; a dict of p-bits for the given circuit.
     """
+
     def __init__(self, circuit, pbits={}):
         self.circuit = circuit
         self.gates = circuit["gates"]  # list of gates

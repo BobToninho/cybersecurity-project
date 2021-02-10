@@ -87,17 +87,19 @@ class LocalTest(YaoGarbler):
         total_wires = len(a_wires) + len(b_wires)
         print(f'Total wires: {total_wires}')
 
-        possible_bits_combination = [
+        possible_bit_combinations = [
             format(n, 'b').zfill(total_wires) for n in range(2 ** total_wires)]
 
         print(f"======== {circuit['id']} ========")
 
         # Generate all possible inputs for both Alice and Bob
-        for bits in possible_bits_combination:
-            # print('\n')
+        for bits in possible_bit_combinations:
             bits_a = [int(b) for b in bits[:len(a_wires)]]  # Alice's inputs
             bits_b = [int(b) for b in bits[total_wires -
                                            len(b_wires):]]  # Bob's inputs
+
+            # Excluding carry
+            bits_per_party = len(bits_b)
 
             # Map Alice's wires to (key, encr_bit)
             for i in range(len(a_wires)):
@@ -114,23 +116,36 @@ class LocalTest(YaoGarbler):
 
             result_list = list(result.values())
 
-            # print(f'Result: {result_list[0]}')
-            # print(f'Result carry: {result_list[1]}')
-            # print(bits)
-
             # Format output
             str_bits_a = ''.join(bits[:len(a_wires)])
             str_bits_b = ''.join(bits[len(a_wires):])
             str_result = ''.join([str(result[w]) for w in outputs])
-            # correct_result = bin(int(str_bits_a[::-1], 2) +
-            #  int(str_bits_b[::-1], 2))
-            cr_carry, cr_sum = full_adder(
-                int(str_bits_a[0], 2), int(str_bits_a[1:], 2), int(str_bits_b, 2))
+
+            alice_carry, *alice_real_input = bits_a
+
+            temp_carry = int(str_bits_a[0], 2)
+            result = ''
+
+            for i in range(bits_per_party):
+                current_bit_alice = alice_real_input[i]
+                current_bit_bob = bits_b[i]
+                # print(type(current_bit_alice), type(current_bit_bob))
+
+                # Alice's carry, current Alice's bit, current Bob's bit
+                partial_carry, partial_sum = full_adder(
+                    temp_carry, current_bit_alice, current_bit_bob)
+
+                result += str(partial_sum)
+
+                temp_carry = partial_carry
+
+            whole_result = str(result) + str(temp_carry)
 
             print(f"Alice{a_wires} = {str_bits_a} "
                   f"Bob{b_wires} = {str_bits_b}\t"
                   f"Outputs{outputs} = {str_result}   "
-                  f"Correct result = {cr_sum, cr_carry}")
+                  f"Correct result = {whole_result} "
+                  f"Are they equal? {verify(str_result, whole_result)}")
 
         print()
 
@@ -145,6 +160,12 @@ class LocalTest(YaoGarbler):
                           f"must be in {list(self.modes.keys())}")
             return
         self._print_mode = print_mode
+
+# Inputs as strings
+
+
+def verify(first_input, second_input):
+    return first_input == second_input
 
 
 def main(

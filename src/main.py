@@ -4,6 +4,7 @@ import logging
 import util
 import yao
 from binary_adder import *
+from n_bit_binary_adder import make_n_bit_adder
 from abc import ABC, abstractmethod
 
 logging.basicConfig(format="[%(levelname)s] %(message)s",
@@ -121,25 +122,8 @@ class LocalTest(YaoGarbler):
             str_bits_b = ''.join(bits[len(a_wires):])
             str_result = ''.join([str(result[w]) for w in outputs])
 
-            alice_carry, *alice_real_input = bits_a
-
-            temp_carry = int(str_bits_a[0], 2)
-            result = ''
-
-            for i in range(bits_per_party):
-                current_bit_alice = alice_real_input[i]
-                current_bit_bob = bits_b[i]
-                # print(type(current_bit_alice), type(current_bit_bob))
-
-                # Alice's carry, current Alice's bit, current Bob's bit
-                partial_carry, partial_sum = full_adder(
-                    temp_carry, current_bit_alice, current_bit_bob)
-
-                result += str(partial_sum)
-
-                temp_carry = partial_carry
-
-            whole_result = str(result) + str(temp_carry)
+            n_bits_adder = make_n_bit_adder(bits_per_party)
+            whole_result = n_bits_adder(bits_a, bits_b)
 
             print(f"Alice{a_wires} = {str_bits_a} "
                   f"Bob{b_wires} = {str_bits_b}\t"

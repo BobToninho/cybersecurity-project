@@ -125,13 +125,11 @@ class LocalTest(YaoGarbler):
             n_bits_adder = make_n_bit_adder(bits_per_party)
             whole_result = n_bits_adder(bits_a, bits_b)
 
-            print(f"Alice{a_wires} = {str_bits_a} "
-                  f"Bob{b_wires} = {str_bits_b}\t"
-                  f"Outputs{outputs} = {str_result}   "
-                  f"Correct result = {whole_result} "
-                  f"Are they equal? {verify(str_result, whole_result)}")
-
-        print()
+            print(f"Alice{a_wires} = {str_bits_a} - "
+                  f"Bob{b_wires} = {str_bits_b}  ->  "
+                  f"Outputs{outputs} = {str_result}  -  "
+                  f"Correct result = {whole_result} - "
+                  f"Are they equal? {'Yes' if verify(str_result, whole_result) else 'No'}")
 
     @property
     def print_mode(self):

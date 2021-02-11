@@ -1,3 +1,4 @@
+# Taken from https://github.com/ojroques/garbled-circuit
 import pickle
 import random
 from cryptography.fernet import Fernet

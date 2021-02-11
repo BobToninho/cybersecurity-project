@@ -1,4 +1,4 @@
-# https://gist.githubusercontent.com/wray/16f972ec739c5e3f0cb8/raw/497ce48d684221d7fa740a10b0d4cb7514782450/binary_adder.py
+# Taken from https://gist.githubusercontent.com/wray/16f972ec739c5e3f0cb8/raw/497ce48d684221d7fa740a10b0d4cb7514782450/binary_adder.py
 #
 # To use these functions, you can run python and then import like -
 # from binary_adder import *
@@ -9,36 +9,38 @@
 # what happens on silicon using code many, many, levels above that!
 #
 
-# A binary half adder -- performing addition only using logic operators,
-# A half adder simply adds two bits and outputs a sum and carry
-#
 def half_adder(a, b):
+    """
+    A binary half adder -- performing addition only using logic operators,
+    A half adder simply adds two bits and outputs a sum and carry
+    """
+
     # ^ is logical xor in python
     sum = a ^ b
     carry = a and b
     return carry, sum
 
-# A binary full adder
-# The full adder can add 3 bits (can handle an incoming carry)
-# Also returns a sum and carry
-#
-
 
 def full_adder(carry_in, a, b):
+    """
+    A binary full adder
+    The full adder can add 3 bits (can handle an incoming carry)
+    Also returns a sum and carry
+    """
     carry1, sum1 = half_adder(carry_in, a)
     carry2, sum = half_adder(sum1, b)
     carry = carry1 or carry2
     return carry, sum
 
-# This method virtually chains together binary full adders in order
-# to add binary numbers of arbitrary size.
-#
-# a and b are expected to be strings representing binary integers.
-#
-#
-
 
 def binary_adder(a, b):
+    """
+    This method virtually chains together binary full adders in order
+    to add binary numbers of arbitrary size.
+
+    a and b are expected to be strings representing binary integers.
+    """
+
     an = len(a)
     bn = len(b)
 

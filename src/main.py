@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 import logging
-# import ot
 import util
 import yao
+from abc import ABC, abstractmethod
 from binary_adder import *
 from n_bit_binary_adder import make_n_bit_adder
-from abc import ABC, abstractmethod
 
 logging.basicConfig(format="[%(levelname)s] %(message)s",
                     level=logging.WARNING)
@@ -13,7 +12,7 @@ logging.basicConfig(format="[%(levelname)s] %(message)s",
 
 # Taken from https://github.com/ojroques/garbled-circuit
 class YaoGarbler(ABC):
-    """An abstract class for Yao garblers (e.g. Alice)."""
+    """An abstract class for Yao garblers (e.g. Alice). Used for local simulation as well"""
 
     def __init__(self, circuits):
         circuits = util.parse_json(circuits)
@@ -39,6 +38,7 @@ class YaoGarbler(ABC):
         pass
 
 
+# Taken from https://github.com/ojroques/garbled-circuit
 class LocalTest(YaoGarbler):
     """A class for local tests.
 
@@ -55,7 +55,6 @@ class LocalTest(YaoGarbler):
         self._print_mode = print_mode
         self.modes = {
             "circuit": self._print_evaluation,
-            "table": self._print_tables,
         }
         logging.info(f"Print mode: {print_mode}")
 
@@ -63,10 +62,6 @@ class LocalTest(YaoGarbler):
         """Start local Yao protocol."""
         for circuit in self.circuits:
             self.modes[self.print_mode](circuit)
-
-    def _print_tables(self, entry):
-        """Print garbled tables."""
-        entry["garbled_circuit"].print_garbled_tables()
 
     def _print_evaluation(self, entry):
         """Print circuit evaluation."""
@@ -143,22 +138,20 @@ class LocalTest(YaoGarbler):
             return
         self._print_mode = print_mode
 
-# Inputs as strings
-
 
 def verify(first_input, second_input):
+    """Inputs as strings"""
     return first_input == second_input
 
 
 def main(
     party,
-    circuit_path="add.json",
-    print_mode="circuit",
+    circuit_path,
 ):
     logging.getLogger().setLevel(logging.CRITICAL)
 
     if party == "local":
-        local = LocalTest(circuit_path, print_mode=print_mode)
+        local = LocalTest(circuit_path, print_mode="circuit")
         local.start()
     else:
         logging.error(f"Unknown party '{party}'")
@@ -180,26 +173,20 @@ if __name__ == '__main__':
 
         parser = argparse.ArgumentParser(description="Run Yao protocol.")
         parser.add_argument("party",
-                            choices=["alice", "bob", "local"],
+                            choices=["local"],
                             help="the yao party to run")
+
         parser.add_argument(
             "-c",
             "--circuit",
-            metavar="circuit.json",
-            default="circuits/default.json",
+            metavar="4bit-adder.json",
+            default="src/4bit-adder.json",
             help=("the JSON circuit file for alice and local tests"),
         )
-        parser.add_argument(
-            "-m",
-            metavar="mode",
-            choices=["circuit", "table"],
-            default="circuit",
-            help="the print mode for local tests (default 'circuit')")
 
         main(
             party=parser.parse_args().party,
             circuit_path=parser.parse_args().circuit,
-            print_mode=parser.parse_args().m,
         )
 
     init()

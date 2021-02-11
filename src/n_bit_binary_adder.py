@@ -40,7 +40,7 @@ def add_n_bits(alice_input, bob_input, bits_per_party=4):
 
 def make_n_bit_adder(bits_per_party):
     """
-    High order function that dynamically generates the no-MPC function
+    High order function that dynamically generates the non-MPC function
     to compute according to the number of inputs.
     """
     return lambda x, y: add_n_bits(x, y, bits_per_party)

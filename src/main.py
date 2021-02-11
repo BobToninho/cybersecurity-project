@@ -64,7 +64,9 @@ class LocalTest(YaoGarbler):
             self.modes[self.print_mode](circuit)
 
     def _print_evaluation(self, entry):
-        """Print circuit evaluation."""
+        """
+        Print circuit evaluation and perform equality check of the result.
+        """
         circuit, pbits, keys = entry["circuit"], entry["pbits"], entry["keys"]
         garbled_tables = entry["garbled_tables"]
         outputs = circuit["out"]
@@ -72,12 +74,12 @@ class LocalTest(YaoGarbler):
         # Alice
         a_wires = circuit.get("alice", [])  # Alice's wires
         a_inputs = {}  # map from Alice's wires to (key, encr_bit) inputs
-        print(f'Alice\'s wires {a_wires}')
+        print(f'Alice\'s wires {a_wires[::-1]}')
 
         # Bob
         b_wires = circuit.get("bob", [])  # Bob's wires
         b_inputs = {}  # map from Bob's wires to (key, encr_bit) inputs
-        print(f'Bob\'s wires {b_wires}\n')
+        print(f'Bob\'s wires {b_wires[::-1]}\n')
 
         pbits_out = {w: pbits[w] for w in outputs}  # p-bits of outputs
         total_wires = len(a_wires) + len(b_wires)
@@ -115,16 +117,25 @@ class LocalTest(YaoGarbler):
             # Format output
             str_bits_a = ''.join(bits[:len(a_wires)])
             str_bits_b = ''.join(bits[len(a_wires):])
-            str_result = ''.join([str(result[w]) for w in outputs])
+            mpc_result = ''.join([str(result[w]) for w in outputs])
 
+            # === Performing the non-MPC function evaluation ===
             n_bits_adder = make_n_bit_adder(bits_per_party)
-            whole_result = n_bits_adder(bits_a, bits_b)
+            non_mpc_result = n_bits_adder(bits_a, bits_b)
 
-            print(f"Alice{a_wires} = {str_bits_a} - "
-                  f"Bob{b_wires} = {str_bits_b}  ->  "
-                  f"Outputs{outputs} = {str_result}  -  "
-                  f"Correct result = {whole_result} - "
-                  f"Are they equal? {'Yes' if verify(str_result, whole_result) else 'No'}")
+            # This operation is necessary because the result of
+            # n_bits_adder will have the following shape:
+            # R_3, R_2, R_1, R_0, C_3
+            #
+            # Therefore the displayed wires order needs to be modified accordingly.
+            output_wires = outputs[::-1][1:]
+            output_wires.append(outputs[-1])
+
+            print(f"Alice{a_wires[::-1]} = {str_bits_a} - "
+                  f"Bob{b_wires[::-1]} = {str_bits_b}  ->  "
+                  f"Outputs{output_wires} = {mpc_result}  -  "
+                  f"Correct result = {non_mpc_result} - "
+                  f"Are they equal? {'Yes' if verifyResults(mpc_result, non_mpc_result) else 'No'}")
 
     @property
     def print_mode(self):
@@ -139,8 +150,13 @@ class LocalTest(YaoGarbler):
         self._print_mode = print_mode
 
 
-def verify(first_input, second_input):
-    """Inputs as strings"""
+def verifyResults(first_input, second_input):
+    """
+    Equality check performed on the two paramenters. This function
+    is used to compare the results of the MPC evaluation and of the
+    non-MPC evaluation.
+    (The two inputs need to be strings)
+    """
     return first_input == second_input
 
 
